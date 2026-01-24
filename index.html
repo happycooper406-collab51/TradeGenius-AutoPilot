@@ -1,0 +1,1476 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Four.meme 早期買家分析器</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+            background: #000000;
+            min-height: 100vh;
+            padding: 20px;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .brand-footer {
+            background: white;
+            border-radius: 15px;
+            padding: 20px 30px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+            margin-top: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .brand-left {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .brand-logo {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #A08EBC;
+        }
+
+        .brand-info {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .brand-title {
+            font-weight: 600;
+            font-size: 1.1rem;
+            color: #333;
+        }
+
+        .brand-social {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .brand-social a {
+            color: #A08EBC;
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+
+        .brand-social a:hover {
+            color: #8B7AA3;
+            transform: translateY(-2px);
+        }
+
+        .brand-version {
+            background: #6C8EAD;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            white-space: nowrap;
+        }
+
+        .brand-donate {
+            width: 100%;
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid #e0e0e0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.9rem;
+            color: #666;
+        }
+
+        .brand-donate-label {
+            font-weight: 600;
+            color: #333;
+        }
+
+        .brand-donate-address {
+            flex: 1;
+            background: #f5f5f5;
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-family: monospace;
+            font-size: 0.85rem;
+            color: #A08EBC;
+            cursor: pointer;
+            transition: all 0.3s;
+            user-select: all;
+        }
+
+        .brand-donate-address:hover {
+            background: #eeeeee;
+            transform: translateY(-2px);
+        }
+
+        @media (max-width: 768px) {
+            .brand-footer {
+                flex-direction: column;
+                text-align: center;
+            }
+            
+            .brand-left {
+                flex-direction: column;
+            }
+
+            .brand-donate {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .brand-donate-address {
+                font-size: 0.75rem;
+                word-break: break-all;
+            }
+        }
+
+        .card {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+
+        .input-section {
+            margin-bottom: 20px;
+        }
+
+        .input-row {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+
+        .input-field {
+            flex: 1;
+            min-width: 250px;
+        }
+
+        .input-field label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #555;
+            font-size: 0.95rem;
+        }
+
+        .input-field input {
+            width: 100%;
+            padding: 14px 18px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 1rem;
+            transition: all 0.3s;
+        }
+
+        .input-field input:focus {
+            outline: none;
+            border-color: #6C8EAD;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .api-help {
+            margin-top: 8px;
+            font-size: 0.85rem;
+            color: #666;
+        }
+
+        .api-help a {
+            color: #6C8EAD;
+            text-decoration: none;
+        }
+
+        .api-help a:hover {
+            text-decoration: underline;
+        }
+
+        .analyze-btn {
+            width: 100%;
+            padding: 16px;
+            background: #6C8EAD;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 10px;
+        }
+
+        .analyze-btn:hover {
+            background: #5A7A95;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(108, 142, 173, 0.3);
+        }
+
+        .analyze-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 30px;
+        }
+
+        .loading.active {
+            display: block;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #6C8EAD;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .error-message {
+            display: none;
+            background: #fee;
+            color: #c33;
+            padding: 15px 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            border-left: 4px solid #c33;
+        }
+
+        .error-message.active {
+            display: block;
+        }
+
+        .results {
+            display: none;
+        }
+
+        .results.active {
+            display: block;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #6C8EAD 0%, #A08EBC 100%);
+            padding: 25px;
+            border-radius: 15px;
+            color: white;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .stat-label {
+            font-size: 0.95rem;
+            opacity: 0.9;
+        }
+
+        .table-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .search-box {
+            flex: 1;
+            min-width: 250px;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 12px 18px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 0.95rem;
+        }
+
+        .export-btn {
+            padding: 12px 24px;
+            background: #9DC8C2;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .export-btn:hover {
+            background: #88B5AF;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(157, 200, 194, 0.3);
+        }
+
+        .table-container {
+            overflow-x: auto;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+        }
+
+        thead {
+            background: #f8f9fa;
+        }
+
+        th {
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+            color: #555;
+            border-bottom: 2px solid #e0e0e0;
+            white-space: nowrap;
+        }
+
+        td {
+            padding: 15px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        tr:hover {
+            background: #f8f9fa;
+        }
+
+        .address-cell {
+            font-family: 'Courier New', monospace;
+            color: #6C8EAD;
+            cursor: pointer;
+        }
+
+        .address-cell:hover {
+            text-decoration: underline;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        .status-cleared {
+            background: #fee;
+            color: #c33;
+        }
+
+        .status-holding {
+            background: #efe;
+            color: #3c3;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 1.8rem;
+            }
+
+            .input-row {
+                flex-direction: column;
+            }
+
+            .stat-value {
+                font-size: 2rem;
+            }
+
+            th, td {
+                padding: 10px;
+                font-size: 0.9rem;
+            }
+        }
+    
+    /* ==================== 進度顯示樣式 ==================== */
+    .progress-info {
+        margin-top: 30px;
+        width: 100%;
+        max-width: 600px;
+    }
+
+    .progress-info h3 {
+        color: #6C8EAD;
+        margin-bottom: 10px;
+        font-size: 1.2em;
+    }
+
+    .progress-info p {
+        color: #94A3B8;
+        margin-bottom: 20px;
+    }
+
+    .progress-bar-container {
+        margin: 20px 0;
+    }
+
+    .progress-bar {
+        width: 100%;
+        height: 30px;
+        background: rgba(108, 142, 173, 0.1);
+        border-radius: 15px;
+        overflow: hidden;
+        position: relative;
+    }
+
+    .progress-bar-fill {
+        height: 100%;
+        background: linear-gradient(90deg, #6C8EAD, #8FA9C3);
+        border-radius: 15px;
+        transition: width 0.3s ease;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .progress-bar-fill::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        bottom: 0;
+        right: 0;
+        background: linear-gradient(
+            90deg,
+            transparent,
+            rgba(255, 255, 255, 0.3),
+            transparent
+        );
+        animation: shimmer 2s infinite;
+    }
+
+    @keyframes shimmer {
+        0% { transform: translateX(-100%); }
+        100% { transform: translateX(100%); }
+    }
+
+    .progress-text {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 10px;
+        font-size: 0.9em;
+        color: #6C8EAD;
+    }
+
+    #progressPercent {
+        font-weight: bold;
+        font-size: 1.1em;
+    }
+
+    #progressDetail {
+        color: #94A3B8;
+    }
+
+    .estimated-time {
+        margin-top: 15px;
+        color: #94A3B8;
+        font-size: 0.9em;
+    }
+
+    /* 交易統計顯示 */
+    .analysis-stats {
+        display: flex;
+        gap: 20px;
+        justify-content: center;
+        margin: 20px 0;
+        padding: 15px;
+        background: rgba(108, 142, 173, 0.1);
+        border-radius: 10px;
+    }
+
+    .stat-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .stat-icon {
+        font-size: 1.3em;
+    }
+
+    .stat-label {
+        color: #94A3B8;
+        font-size: 0.95em;
+    }
+
+    .stat-value {
+        color: #6C8EAD;
+        font-weight: bold;
+        font-size: 1.1em;
+    }
+
+    @media (max-width: 600px) {
+        .analysis-stats {
+            flex-direction: column;
+            gap: 10px;
+        }
+    }
+
+    /* ==================== 進度顯示樣式結束 ==================== */
+
+</style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔥 Four.meme 早期買家分析器 🔥</h1>
+        </div>
+
+        <div class="card">
+            <div class="input-section">
+                <div class="input-row">
+                    <div class="input-field">
+                        <label for="apiKey">🔑 Etherscan API Key</label>
+                        <input type="text" id="apiKey" placeholder="請輸入你的 API Key" autocomplete="off">
+                        <p class="api-help">
+                            <strong>免費註冊</strong>：<a href="https://bscscan.com/register" target="_blank" style="color: #6C8EAD;">https://bscscan.com/register</a>
+                            <br><span style="color: #666;">註冊後即可獲得免費 API Key，支援 BSC、Ethereum 等多條鏈</span>
+                        </p>
+                    </div>
+                </div>
+
+                <div class="input-row">
+                    <div class="input-field">
+                        <label for="addressBook">📒 地址庫 (可選)</label>
+                        <input type="file" id="addressBook" accept=".json" style="padding: 8px;">
+                        <p class="api-help" style="margin-top: 5px; font-size: 12px; color: #4CAF50;">
+                            💡 上傳你的地址標記 JSON 文件，自動識別已知地址
+                            <br>📝 格式：[{"address": "0x...", "name": "名稱", "emoji": ""}]
+                        </p>
+                    </div>
+                </div>
+
+                <div class="input-row">
+                    <div class="input-field">
+                        <label for="tokenAddress">📍 代幣合約地址</label>
+                        <input type="text" id="tokenAddress" placeholder="0x..." autocomplete="off">
+                    </div>
+                </div>
+
+                <div class="input-row">
+                    <div class="input-field" style="max-width: 400px;">
+                        <label>⏱️ 起始時間（開盤後）</label>
+                        <div style="display: flex; gap: 10px; align-items: flex-start;">
+                            <div style="flex: 1;">
+                                <input type="number" id="startMinutes" value="0" min="0" max="1440" placeholder="分鐘">
+                                <small style="display: block; color: #666; margin-top: 2px;">分鐘</small>
+                            </div>
+                            <div style="flex: 1;">
+                                <input type="number" id="startSeconds" value="0" min="0" max="59" placeholder="秒">
+                                <small style="display: block; color: #666; margin-top: 2px;">秒</small>
+                            </div>
+                        </div>
+                        <p class="api-help" style="margin-top: 5px; font-size: 12px;">
+                            <strong>說明：</strong>從開盤後多久開始抓取<br>
+                            <span style="color: #4CAF50;">例如：15分鐘 = 從開盤後15分鐘開始</span>
+                        </p>
+                    </div>
+                    
+                    <div class="input-field" style="max-width: 400px;">
+                        <label>⏱️ 結束時間（開盤後）</label>
+                        <div style="display: flex; gap: 10px; align-items: flex-start;">
+                            <div style="flex: 1;">
+                                <input type="number" id="endMinutes" value="1" min="0" max="1440" placeholder="分鐘">
+                                <small style="display: block; color: #666; margin-top: 2px;">分鐘</small>
+                            </div>
+                            <div style="flex: 1;">
+                                <input type="number" id="endSeconds" value="0" min="0" max="59" placeholder="秒">
+                                <small style="display: block; color: #666; margin-top: 2px;">秒</small>
+                            </div>
+                        </div>
+                        <p class="api-help" style="margin-top: 5px; font-size: 12px;">
+                            <strong>說明：</strong>到開盤後多久結束抓取<br>
+                            <span style="color: #4CAF50;">例如：30分鐘 = 到開盤後30分鐘為止</span>
+                        </p>
+                    </div>
+                </div>
+                
+                <div class="input-row">
+                    <div class="input-field" style="max-width: 180px;">
+                        <label for="maxTxs">🤖 機器人閾值</label>
+                        <input type="number" id="maxTxs" value="10" min="0" max="1000">
+                        <p class="api-help" style="margin-top: 5px; font-size: 12px;">
+                            <strong>說明：</strong>篩選高頻交易帳號<br>
+                            交易筆數 > 此值 = 機器人<br>
+                            <span style="color: #4CAF50;">建議：10（嚴格）～ 100（寬鬆）</span>
+                        </p>
+                    </div>
+                </div>
+
+                <button class="analyze-btn" onclick="analyzeToken()">
+                    🚀 開始分析
+                </button>
+            </div>
+
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p>正在分析中，請稍候...</p>
+            </div>
+
+            <div class="error-message" id="errorMessage"></div>
+        </div>
+
+        <div class="results" id="results">
+            <div class="card">
+                <h2 style="margin-bottom: 20px; color: #6C8EAD;">📊 分析結果</h2>
+                
+                <div class="stats-grid" id="statsGrid"></div>
+
+                <div class="table-controls">
+                    <div class="search-box">
+                        <input type="text" id="searchInput" placeholder="搜尋地址..." onkeyup="filterTable()">
+                    </div>
+                    <button class="export-btn" onclick="exportCSV()">
+                        📥 匯出 CSV
+                    </button>
+                </div>
+
+                <div class="table-container">
+                    <table id="buyersTable">
+                        <thead>
+                            <tr>
+                                <th style="cursor: default;">#</th>
+                                <th style="cursor: pointer;" onclick="sortTable('address')">
+                                    地址 <span id="sort-address" style="opacity: 0.3;">▼</span>
+                                </th>
+                                <th style="cursor: pointer;" onclick="sortTable('time')">
+                                    首次買入 <span id="sort-time" style="opacity: 0.3;">▼</span>
+                                </th>
+                                <th style="cursor: pointer;" onclick="sortTable('bnbProfit')">
+                                    BNB 利潤 <span id="sort-bnbProfit" style="opacity: 0.3;">▼</span>
+                                </th>
+                                <th style="cursor: pointer;" onclick="sortTable('usdProfit')">
+                                    總利潤 (USD) <span id="sort-usdProfit" style="opacity: 0.3;">▼</span>
+                                </th>
+                                <th style="cursor: pointer;" onclick="sortTable('multiple')">
+                                    倍數 <span id="sort-multiple" style="opacity: 0.3;">▼</span>
+                                </th>
+                                <th style="cursor: pointer;" onclick="sortTable('holdingTime')">
+                                    持倉時間 <span id="sort-holdingTime" style="opacity: 0.3;">▼</span>
+                                </th>
+                                <th style="cursor: pointer;" onclick="sortTable('status')">
+                                    狀態 <span id="sort-status" style="opacity: 0.3;">▼</span>
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody id="buyersTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+
+        // Session-based 進度追蹤
+        let currentSessionId = null;
+        let progressInterval = null;
+
+        // 重置進度
+        function resetProgress() {
+            document.getElementById('progressStage').textContent = '正在分析中...';
+            document.getElementById('progressMessage').textContent = '請稍候...';
+            document.getElementById('progressBarFill').style.width = '0%';
+            document.getElementById('progressPercent').textContent = '0%';
+            document.getElementById('progressDetail').textContent = '';
+            document.getElementById('estimatedTime').textContent = '';
+        }
+
+        // 開始輪詢進度（使用 session_id）
+        function startProgressPolling(sessionId) {
+            currentSessionId = sessionId;
+            if (progressInterval) clearInterval(progressInterval);
+            progressInterval = setInterval(() => updateProgress(sessionId), 500);
+        }
+
+        // 停止輪詢進度
+        function stopProgressPolling() {
+            if (progressInterval) {
+                clearInterval(progressInterval);
+                progressInterval = null;
+            }
+            currentSessionId = null;
+        }
+
+        // 更新進度顯示
+        function updateProgress(sessionId) {
+            fetch(`/api/progress/${sessionId}`)
+                .then(r => r.json())
+                .then(data => {
+                    // 檢查是否完成或錯誤
+                    if (data.status === 'completed' || data.status === 'error') {
+                        console.log('分析已完成或錯誤，停止輪詢');
+                        stopProgressPolling();
+                        return;
+                    }
+                    
+                    if (data.stage) {
+                        document.getElementById('progressStage').textContent = getStageText(data.stage);
+                    }
+                    if (data.message) {
+                        document.getElementById('progressMessage').textContent = data.message;
+                    }
+                    
+                    // 顯示進度百分比
+                    const progress = Math.min(100, Math.max(0, data.progress || 0));
+                    document.getElementById('progressBarFill').style.width = progress + '%';
+                    document.getElementById('progressPercent').textContent = `當前進度：${progress}%`;
+                    
+                    // 顯示交易筆數統計
+                    if (data.total > 0) {
+                        const statsDiv = document.getElementById('analysisStats');
+                        statsDiv.style.display = 'flex';
+                        
+                        // 顯示總交易數
+                        document.getElementById('totalTransactions').textContent = `${data.total} 筆`;
+                        
+                        // 根據總交易數計算預估時間範圍
+                        let estimatedMin, estimatedMax;
+                        if (data.total < 500) {
+                            estimatedMin = 2;
+                            estimatedMax = 5;
+                        } else if (data.total < 1000) {
+                            estimatedMin = 3;
+                            estimatedMax = 8;
+                        } else if (data.total < 2000) {
+                            estimatedMin = 5;
+                            estimatedMax = 12;
+                        } else if (data.total < 5000) {
+                            estimatedMin = 8;
+                            estimatedMax = 18;
+                        } else {
+                            estimatedMin = 15;
+                            estimatedMax = 30;
+                        }
+                        
+                        document.getElementById('estimatedDuration').textContent = `${estimatedMin}-${estimatedMax} 分鐘`;
+                        
+                        // 顯示已完成/總數
+                        if (data.completed > 0) {
+                            document.getElementById('progressDetail').textContent = `已處理 ${data.completed}/${data.total}`;
+                        }
+                    }
+                    
+                    // 顯示剩餘時間
+                    if (data.estimated_time > 0) {
+                        const min = Math.floor(data.estimated_time / 60);
+                        const sec = data.estimated_time % 60;
+                        let txt = '⏳ 預估剩餘：';
+                        if (min > 0) txt += `${min} 分 `;
+                        txt += `${sec} 秒`;
+                        document.getElementById('estimatedTime').textContent = txt;
+                    } else {
+                        document.getElementById('estimatedTime').textContent = '';
+                    }
+                })
+                .catch(err => {
+                    console.error('獲取進度失敗:', err);
+                    stopProgressPolling();
+                });
+        }
+
+        // 階段文字映射
+        function getStageText(stage) {
+            const map = {
+                '初始化': '🔄 初始化分析',
+                '獲取交易': '📥 獲取交易記錄',
+                '篩選買家': '🔍 篩選早期買家',
+                '收集交易': '📦 收集交易列表',
+                '查詢交易': '💰 查詢交易詳情',
+                '計算利潤': '🧮 計算利潤數據',
+                '完成': '✅ 分析完成'
+            };
+            return map[stage] || stage;
+        }
+
+        let currentResults = null;
+        let addressBookData = {}; // 地址庫
+        let currentBuyers = []; // 當前顯示的買家數據
+        let sortState = {
+            column: null,
+            ascending: true
+        };
+
+        // 排序函數
+        function sortTable(column) {
+            if (!currentBuyers || currentBuyers.length === 0) return;
+
+            // 切換排序方向
+            if (sortState.column === column) {
+                sortState.ascending = !sortState.ascending;
+            } else {
+                sortState.column = column;
+                sortState.ascending = false; // 預設降序（大到小）
+            }
+
+            // 更新排序指示器
+            document.querySelectorAll('thead span[id^="sort-"]').forEach(span => {
+                span.style.opacity = '0.3';
+                span.textContent = '▼';
+            });
+            
+            const indicator = document.getElementById(`sort-${column}`);
+            indicator.style.opacity = '1';
+            indicator.textContent = sortState.ascending ? '▲' : '▼';
+
+            // 排序數據
+            currentBuyers.sort((a, b) => {
+                let valA, valB;
+
+                switch(column) {
+                    case 'address':
+                        valA = a.address.toLowerCase();
+                        valB = b.address.toLowerCase();
+                        break;
+                    case 'time':
+                        valA = new Date(a.first_buy_time).getTime();
+                        valB = new Date(b.first_buy_time).getTime();
+                        break;
+                    case 'bnbProfit':
+                        valA = a.bnb_profit || 0;
+                        valB = b.bnb_profit || 0;
+                        break;
+                    case 'usdProfit':
+                        valA = a.total_profit_usd || 0;
+                        valB = b.total_profit_usd || 0;
+                        break;
+                    case 'multiple':
+                        valA = a.profit_multiple || 0;
+                        valB = b.profit_multiple || 0;
+                        break;
+                    case 'holdingTime':
+                        valA = a.holding_duration_seconds || 0;
+                        valB = b.holding_duration_seconds || 0;
+                        break;
+                    case 'status':
+                        valA = a.status === '已清倉' ? 1 : 0;
+                        valB = b.status === '已清倉' ? 1 : 0;
+                        break;
+                    default:
+                        return 0;
+                }
+
+                if (valA < valB) return sortState.ascending ? -1 : 1;
+                if (valA > valB) return sortState.ascending ? 1 : -1;
+                return 0;
+            });
+
+            // 重新渲染表格
+            renderTable();
+        }
+
+        // 渲染表格
+        function renderTable() {
+            const tbody = document.getElementById('buyersTableBody');
+            tbody.innerHTML = '';
+
+            currentBuyers.forEach((buyer, index) => {
+                const row = tbody.insertRow();
+                
+                // 檢查是否為機器人
+                const isBot = buyer.is_bot || (buyer.bnb_spent === 0 && buyer.bnb_received === 0 && buyer.buy_count > 100);
+                
+                // 獲取地址標記
+                const addressLabel = getAddressLabel(buyer.address);
+                const isKnown = addressLabel !== null;
+                
+                // 格式化地址顯示
+                let addressDisplay;
+                if (isKnown) {
+                    const shortAddr = `${buyer.address.substring(0, 6)}...${buyer.address.substring(buyer.address.length - 4)}`;
+                    addressDisplay = `<span style="color: #2196F3; font-weight: 600;">✓ ${addressLabel}</span><br><small style="color: #999;">${shortAddr}</small>`;
+                } else if (isBot) {
+                    addressDisplay = `🤖 ${buyer.address.substring(0, 8)}...${buyer.address.substring(buyer.address.length - 6)}`;
+                } else {
+                    addressDisplay = `<span style="color: #FF9800; font-weight: 600;">🆕 ${buyer.address.substring(0, 8)}...${buyer.address.substring(buyer.address.length - 6)}</span>`;
+                }
+                
+                // 格式化買入價格
+                let buyPrice = '-';
+                if (isBot) {
+                    buyPrice = '🤖';
+                } else if (buyer.bnb_spent > 0 && buyer.buy_amount > 0) {
+                    const pricePerToken = buyer.bnb_spent / buyer.buy_amount;
+                    buyPrice = `${pricePerToken.toFixed(10)} BNB`;
+                } else if (buyer.bnb_spent === 0 && buyer.buy_amount > 0) {
+                    // 有代幣但沒有 BNB 成本（可能是轉賬或空投）
+                    buyPrice = '<span style="color: #999; font-size: 12px;">空投/轉賬</span>';
+                }
+                
+                // 格式化賣出價格
+                let sellPrice = '-';
+                let sellPriceColor = '';
+                if (isBot) {
+                    sellPrice = '🤖';
+                } else if (buyer.bnb_received > 0 && buyer.sell_amount > 0) {
+                    const avgSellPrice = buyer.bnb_received / buyer.sell_amount;
+                    sellPrice = `${avgSellPrice.toFixed(10)} BNB`;
+                    
+                    // 如果有買入價格，計算漲跌幅
+                    if (buyer.bnb_spent > 0 && buyer.buy_amount > 0) {
+                        const buyPriceNum = buyer.bnb_spent / buyer.buy_amount;
+                        const priceChange = ((avgSellPrice - buyPriceNum) / buyPriceNum) * 100;
+                        if (priceChange > 0) {
+                            sellPriceColor = 'color: #4CAF50;';
+                            sellPrice += ` <small style="color: #4CAF50;">(+${priceChange.toFixed(1)}%)</small>`;
+                        } else if (priceChange < 0) {
+                            sellPriceColor = 'color: #f44336;';
+                            sellPrice += ` <small style="color: #f44336;">(${priceChange.toFixed(1)}%)</small>`;
+                        }
+                    }
+                } else if (buyer.sell_amount === 0 && !isBot) {
+                    sellPrice = '<span style="color: #999;">未賣出</span>';
+                }
+                
+                // 格式化 BNB 利潤
+                const bnbProfit = buyer.bnb_profit !== 0 ? `${buyer.bnb_profit.toFixed(4)} BNB` : (isBot ? '🤖 機器人' : '-');
+                const bnbProfitColor = buyer.bnb_profit > 0 ? 'color: #4CAF50; font-weight: 600;' : 
+                                      buyer.bnb_profit < 0 ? 'color: #f44336; font-weight: 600;' : 
+                                      isBot ? 'color: #ff9800;' : '';
+                
+                // 格式化 USD 金額
+                const profitUSD = buyer.total_profit_usd !== 0 ? `$${buyer.total_profit_usd.toFixed(2)}` : (isBot ? '🤖' : '-');
+                const profitColor = buyer.total_profit_usd > 0 ? 'color: #4CAF50; font-weight: 600;' : 
+                                   buyer.total_profit_usd < 0 ? 'color: #f44336; font-weight: 600;' : 
+                                   isBot ? 'color: #ff9800;' : '';
+                
+                // 格式化倍數
+                const multiple = buyer.profit_multiple > 0 ? `${buyer.profit_multiple.toFixed(2)}x` : (isBot ? '🤖' : '-');
+                const multipleColor = buyer.profit_multiple > 1 ? 'color: #4CAF50; font-weight: 600;' : 
+                                     buyer.profit_multiple > 0 && buyer.profit_multiple < 1 ? 'color: #f44336; font-weight: 600;' : 
+                                     isBot ? 'color: #ff9800;' : '';
+                
+                row.innerHTML = `
+                    <td>${index + 1}</td>
+                    <td class="address-cell" onclick="window.open('https://bscscan.com/address/${buyer.address}', '_blank')">
+                        ${addressDisplay}
+                    </td>
+                    <td>${buyer.first_buy_time}</td>
+                    <td style="${bnbProfitColor}">${bnbProfit}</td>
+                    <td style="${profitColor}">${profitUSD}</td>
+                    <td style="${multipleColor}">${multiple}</td>
+                    <td>${buyer.holding_time}</td>
+                    <td><span class="status-badge ${buyer.status === '已清倉' ? 'status-cleared' : 'status-holding'}">${buyer.status}</span></td>
+                `;
+            });
+        }
+
+        // 讀取地址庫文件
+        document.getElementById('addressBook').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                try {
+                    const data = JSON.parse(event.target.result);
+                    
+                    // 轉換為 map
+                    addressBookData = {};
+                    data.forEach(item => {
+                        if (item.address) {
+                            addressBookData[item.address.toLowerCase()] = {
+                                name: item.name || '',
+                                emoji: item.emoji || ''
+                            };
+                        }
+                    });
+                    
+                    const count = Object.keys(addressBookData).length;
+                    alert(`✅ 地址庫載入成功！\n已載入 ${count} 個地址標記`);
+                    
+                    // 如果已有結果，重新渲染
+                    if (currentResults) {
+                        displayResults(currentResults);
+                    }
+                } catch (error) {
+                    alert('❌ 地址庫格式錯誤：' + error.message);
+                    addressBookData = {};
+                }
+            };
+            reader.readAsText(file);
+        });
+
+        // 根據地址獲取標記
+        function getAddressLabel(address) {
+            const addr = address.toLowerCase();
+            const label = addressBookData[addr];
+            if (label && label.name) {
+                const emoji = label.emoji ? label.emoji + ' ' : '';
+                return emoji + label.name;
+            }
+            return null; // 未標記
+        }
+
+        function showLoading() {
+            document.getElementById('loading').classList.add('active');
+            document.getElementById('errorMessage').classList.remove('active');
+            document.getElementById('results').classList.remove('active');
+        }
+
+        function hideLoading() {
+            document.getElementById('loading').classList.remove('active');
+        }
+
+        function showError(message) {
+            const errorDiv = document.getElementById('errorMessage');
+            errorDiv.textContent = message;
+            errorDiv.classList.add('active');
+            hideLoading();
+        }
+
+        function formatNumber(num) {
+            if (num >= 1e9) return (num / 1e9).toFixed(2) + 'B';
+            if (num >= 1e6) return (num / 1e6).toFixed(2) + 'M';
+            if (num >= 1e3) return (num / 1e3).toFixed(2) + 'K';
+            return num.toFixed(2);
+        }
+
+        function analyzeToken() {
+            const apiKey = document.getElementById('apiKey').value.trim();
+            const tokenAddress = document.getElementById('tokenAddress').value.trim();
+            const startMinutes = parseInt(document.getElementById('startMinutes').value) || 0;
+            const startSeconds = parseInt(document.getElementById('startSeconds').value) || 0;
+            const endMinutes = parseInt(document.getElementById('endMinutes').value) || 0;
+            const endSeconds = parseInt(document.getElementById('endSeconds').value) || 0;
+            const maxTxs = parseInt(document.getElementById('maxTxs').value) || 100;
+
+            if (!apiKey) {
+                showError('請輸入 Etherscan API Key');
+                return;
+            }
+
+            if (!tokenAddress || !tokenAddress.startsWith('0x') || tokenAddress.length !== 42) {
+                showError('請輸入有效的合約地址');
+                return;
+            }
+
+            const startTotalSeconds = startMinutes * 60 + startSeconds;
+            const endTotalSeconds = endMinutes * 60 + endSeconds;
+
+            if (endTotalSeconds === 0) {
+                showError('結束時間必須大於 0');
+                return;
+            }
+
+            if (startTotalSeconds >= endTotalSeconds) {
+                showError('起始時間必須小於結束時間');
+                return;
+            }
+
+            showLoading();
+            
+            // 重置進度
+            resetProgress();
+
+            fetch('/api/analyze', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    api_key: apiKey,
+                    token_address: tokenAddress,
+                    start_minutes: startMinutes,
+                    start_seconds: startSeconds,
+                    end_minutes: endMinutes,
+                    end_seconds: endSeconds,
+                    max_txs: maxTxs
+                }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                // 獲取 session_id 並開始輪詢進度
+                if (data.session_id) {
+                    console.log('Session ID:', data.session_id);
+                    startProgressPolling(data.session_id);
+                }
+                
+                hideLoading();
+                stopProgressPolling();
+                
+                if (data.success) {
+                    currentResults = data;
+                    displayResults(data);
+                } else {
+                        showError(data.error || '分析失敗');
+                }
+            })
+            .catch(error => {
+                stopProgressPolling();
+                hideLoading();
+                showError('請求失敗: ' + error.message);
+            });
+        }
+
+        function displayResults(data) {
+            const { token_info, stats, buyers } = data;
+
+            // 顯示統計
+            const statsHtml = `
+                <div class="stat-card">
+                    <div class="stat-value">${stats.total_buyers}</div>
+                    <div class="stat-label">區間買家數量</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">${formatNumber(stats.total_buy)}</div>
+                    <div class="stat-label">總買入量</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">${stats.cleared_ratio.toFixed(1)}%</div>
+                    <div class="stat-label">已清倉比例</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">${stats.holding_ratio.toFixed(1)}%</div>
+                    <div class="stat-label">仍持倉比例</div>
+                </div>
+            `;
+            document.getElementById('statsGrid').innerHTML = statsHtml;
+
+            // 統計地址類型
+            let knownAddressCount = 0;
+            let newAddressCount = 0;
+            buyers.forEach(buyer => {
+                const isBot = buyer.bnb_spent === 0 && buyer.bnb_received === 0 && buyer.buy_count > 100;
+                if (!isBot) {
+                    if (getAddressLabel(buyer.address)) {
+                        knownAddressCount++;
+                    } else {
+                        newAddressCount++;
+                    }
+                }
+            });
+
+            // 顯示地址統計
+            if (Object.keys(addressBookData).length > 0) {
+                const addressStatsHtml = `
+                    <div style="background: linear-gradient(135deg, #6C8EAD 0%, #A08EBC 100%); padding: 15px; border-radius: 10px; margin-bottom: 20px; color: white;">
+                        <div style="font-size: 16px; margin-bottom: 10px; font-weight: 600;">📒 地址識別統計</div>
+                        <div style="display: flex; gap: 20px; flex-wrap: wrap;">
+                            <div>
+                                <span style="font-size: 24px; font-weight: bold; color: #2196F3;">✓ ${knownAddressCount}</span>
+                                <span style="opacity: 0.9;"> 已知地址</span>
+                            </div>
+                            <div>
+                                <span style="font-size: 24px; font-weight: bold; color: #FF9800;">🆕 ${newAddressCount}</span>
+                                <span style="opacity: 0.9;"> 新地址</span>
+                            </div>
+                            <div style="opacity: 0.8; font-size: 14px; margin-top: 5px;">
+                                💡 已知地址：${((knownAddressCount / (knownAddressCount + newAddressCount)) * 100).toFixed(1)}%
+                            </div>
+                        </div>
+                    </div>
+                `;
+                document.getElementById('statsGrid').insertAdjacentHTML('afterend', addressStatsHtml);
+            }
+
+            // 保存買家數據
+            currentBuyers = buyers;
+            
+            // 渲染表格
+            renderTable();
+
+            document.getElementById('results').classList.add('active');
+        }
+
+        function filterTable() {
+            const input = document.getElementById('searchInput');
+            const filter = input.value.toLowerCase();
+            const table = document.getElementById('buyersTable');
+            const tr = table.getElementsByTagName('tr');
+
+            for (let i = 1; i < tr.length; i++) {
+                const td = tr[i].getElementsByTagName('td')[1];
+                if (td) {
+                    const txtValue = td.textContent || td.innerText;
+                    if (txtValue.toLowerCase().indexOf(filter) > -1) {
+                        tr[i].style.display = '';
+                    } else {
+                        tr[i].style.display = 'none';
+                    }
+                }
+            }
+        }
+
+        function exportCSV() {
+            if (!currentResults) {
+                alert('❌ 沒有可匯出的數據！請先分析代幣。');
+                return;
+            }
+
+            console.log('📊 開始匯出 CSV...');
+            console.log('數據：', currentResults);
+
+            fetch('/api/export', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(currentResults),
+            })
+            .then(response => {
+                console.log('Response status:', response.status);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.blob();
+            })
+            .then(blob => {
+                console.log('收到 blob，大小:', blob.size, 'bytes');
+                if (blob.size === 0) {
+                    throw new Error('CSV 文件為空');
+                }
+                
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `early_buyers_${currentResults.token_info.symbol}.csv`;
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+                document.body.removeChild(a);
+                console.log('✅ CSV 匯出成功！');
+            })
+            .catch(error => {
+                console.error('❌ 匯出失敗:', error);
+                alert('❌ 匯出 CSV 失敗：' + error.message);
+            });
+        }
+    </script>
+
+    <!-- 品牌資訊 -->
+    <div class="brand-footer">
+        <div style="width: 100%;">
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 20px;">
+                <div class="brand-left">
+                    <div class="brand-logo">🏹 NHA</div>
+                    <div class="brand-info">
+                        <div class="brand-title">獵人協會 NHA 製作</div>
+                        <div class="brand-social">
+                            <span>社群媒體：</span>
+                            <a href="https://x.com/0x515151" target="_blank">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="vertical-align: middle;">
+                                    <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+                                </svg>
+                                @0x515151
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                <div class="brand-version">v1.0.0 - 2026.01</div>
+            </div>
+            
+            <div class="brand-donate">
+                <span class="brand-donate-label">💝 打賞地址：</span>
+                <div class="brand-donate-address" onclick="copyDonateAddress()" title="點擊複製地址">
+                    0x036dae2378752c76f4e7fa7e2f5882877b86e4d2
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+
+        // Session-based 進度追蹤
+        let currentSessionId = null;
+        let progressInterval = null;
+
+        // 重置進度
+        function resetProgress() {
+            document.getElementById('progressStage').textContent = '正在分析中...';
+            document.getElementById('progressMessage').textContent = '請稍候...';
+            document.getElementById('progressBarFill').style.width = '0%';
+            document.getElementById('progressPercent').textContent = '0%';
+            document.getElementById('progressDetail').textContent = '';
+            document.getElementById('estimatedTime').textContent = '';
+        }
+
+        // 開始輪詢進度（使用 session_id）
+        function startProgressPolling(sessionId) {
+            currentSessionId = sessionId;
+            if (progressInterval) clearInterval(progressInterval);
+            progressInterval = setInterval(() => updateProgress(sessionId), 500);
+        }
+
+        // 停止輪詢進度
+        function stopProgressPolling() {
+            if (progressInterval) {
+                clearInterval(progressInterval);
+                progressInterval = null;
+            }
+            currentSessionId = null;
+        }
+
+        // 更新進度顯示
+        function updateProgress(sessionId) {
+            fetch(`/api/progress/${sessionId}`)
+                .then(r => r.json())
+                .then(data => {
+                    // 檢查是否完成或錯誤
+                    if (data.status === 'completed' || data.status === 'error') {
+                        console.log('分析已完成或錯誤，停止輪詢');
+                        stopProgressPolling();
+                        return;
+                    }
+                    
+                    if (data.stage) {
+                        document.getElementById('progressStage').textContent = getStageText(data.stage);
+                    }
+                    if (data.message) {
+                        document.getElementById('progressMessage').textContent = data.message;
+                    }
+                    
+                    // 顯示進度百分比
+                    const progress = Math.min(100, Math.max(0, data.progress || 0));
+                    document.getElementById('progressBarFill').style.width = progress + '%';
+                    document.getElementById('progressPercent').textContent = `當前進度：${progress}%`;
+                    
+                    // 顯示交易筆數統計
+                    if (data.total > 0) {
+                        const statsDiv = document.getElementById('analysisStats');
+                        statsDiv.style.display = 'flex';
+                        
+                        // 顯示總交易數
+                        document.getElementById('totalTransactions').textContent = `${data.total} 筆`;
+                        
+                        // 根據總交易數計算預估時間範圍
+                        let estimatedMin, estimatedMax;
+                        if (data.total < 500) {
+                            estimatedMin = 2;
+                            estimatedMax = 5;
+                        } else if (data.total < 1000) {
+                            estimatedMin = 3;
+                            estimatedMax = 8;
+                        } else if (data.total < 2000) {
+                            estimatedMin = 5;
+                            estimatedMax = 12;
+                        } else if (data.total < 5000) {
+                            estimatedMin = 8;
+                            estimatedMax = 18;
+                        } else {
+                            estimatedMin = 15;
+                            estimatedMax = 30;
+                        }
+                        
+                        document.getElementById('estimatedDuration').textContent = `${estimatedMin}-${estimatedMax} 分鐘`;
+                        
+                        // 顯示已完成/總數
+                        if (data.completed > 0) {
+                            document.getElementById('progressDetail').textContent = `已處理 ${data.completed}/${data.total}`;
+                        }
+                    }
+                    
+                    // 顯示剩餘時間
+                    if (data.estimated_time > 0) {
+                        const min = Math.floor(data.estimated_time / 60);
+                        const sec = data.estimated_time % 60;
+                        let txt = '⏳ 預估剩餘：';
+                        if (min > 0) txt += `${min} 分 `;
+                        txt += `${sec} 秒`;
+                        document.getElementById('estimatedTime').textContent = txt;
+                    } else {
+                        document.getElementById('estimatedTime').textContent = '';
+                    }
+                })
+                .catch(err => {
+                    console.error('獲取進度失敗:', err);
+                    stopProgressPolling();
+                });
+        }
+
+        // 階段文字映射
+        function getStageText(stage) {
+            const map = {
+                '初始化': '🔄 初始化分析',
+                '獲取交易': '📥 獲取交易記錄',
+                '篩選買家': '🔍 篩選早期買家',
+                '收集交易': '📦 收集交易列表',
+                '查詢交易': '💰 查詢交易詳情',
+                '計算利潤': '🧮 計算利潤數據',
+                '完成': '✅ 分析完成'
+            };
+            return map[stage] || stage;
+        }
+
+        function copyDonateAddress() {
+            const address = '0x036dae2378752c76f4e7fa7e2f5882877b86e4d2';
+            navigator.clipboard.writeText(address).then(() => {
+                const elem = document.querySelector('.brand-donate-address');
+                const originalText = elem.textContent;
+                elem.textContent = '✅ 已複製！';
+                elem.style.background = '#4CAF50';
+                elem.style.color = 'white';
+                setTimeout(() => {
+                    elem.textContent = originalText;
+                    elem.style.background = '#f5f5f5';
+                    elem.style.color = '#6C8EAD';
+                }, 2000);
+            });
+        }
+    </script>
+
+</body>
+</html>
